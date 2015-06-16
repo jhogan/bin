@@ -1,0 +1,3 @@
+#! /bin/sh
+# apt-get rubygems first !
+ ruby -rubygems -e 'require "json";require "yaml"; puts YAML.dump(JSON.parse($stdin.gets))'

@@ -1,0 +1,21 @@
+#! /usr/bin/python
+from datetime import date
+import sys
+cnt=sum=0
+with open('/home/jhogan/trunks/var/log/weight', 'r') as f:
+    for l in f:
+        l=l.strip()
+        d, w = l.split()
+        YY, mm, dd = [int(x) for x in (d[:4], d[4:6], d[6:])]
+        w=float(w)
+        d=date(YY,mm,dd)
+        if d.weekday() == 0: # Monday
+            if sum>0: 
+                print(' ' + str(sum/cnt))
+                sum=cnt=0
+            sys.stdout.write(str(d))
+        sum += w
+        cnt += 1
+        
+if sum>0: 
+    print(' ' + str(sum/cnt))

@@ -1,0 +1,29 @@
+#! /bin/bash
+TMP=/tmp/sep2tab-$$.html
+
+while getopts "s t d:" opt
+do
+    case "$opt" in
+            s) DEL=" ";;
+            t) DEL="\t";;
+            d) DEL=$OPTARG;;
+    esac
+done
+test -z "$DEL" && DEL=" "
+
+while read l; do 
+        t="$t
+$l"; 
+done
+
+if test -n "$t"; then
+        umask 077
+        echo "<html> <body> <table>" >$TMP
+        echo "$t" | sed -e "s|^|<tr><td>|" \
+                        -e "s|$|</td></tr>|"\
+                        -e "s|$DEL|</td><td>|g" >>$TMP
+        echo "</table> </body> </html>" >>$TMP
+
+        links -dump $TMP
+        rm -f "$TMP" &>/dev/null
+fi

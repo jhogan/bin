@@ -1,0 +1,36 @@
+#!/bin/sh
+. jjhfunctions
+MSSQLDIR="c:\\Program Files\\microsoft sql server"
+
+usage(){
+        echo $1
+        echo "Usage: $ME -P prog -s svr -d db -u uid -p pwd"
+        exit 1
+}
+
+while getopts "P:u:p:d:s:" opt
+do
+    case "$opt" in
+            P) PROG="$OPTARG";;
+            u) UNAME="$OPTARG";;
+            p) PASS="$OPTARG";;
+            d) DB="$OPTARG";;
+            s) SRV="$OPTARG";;
+    esac
+done
+MDF=${MSSQLDIR}\\${DB}.mdf
+LDF=${MSSQLDIR}\\${DB}.ldf
+LOGICALMDF=${DB}_dat
+LOGICALLDF=${DB}_log
+
+tmp=$DB; resolveprog; DB=$tmp
+
+[ -z "$DB" ] && usage "missing -d"
+[ -z "$SRV" ] && usage "missing -s"
+
+sql="create database $DB on (NAME=$LOGICALMDF, filename='$MDF', size=10, maxsize=50, filegrowth=5)"
+sql="$sql log on (name=$LOGICALLDF, filename='$LDF', size=5MB, maxsize=25MB, filegrowth=5MB)"
+warn "$sql"
+warn "on $SRV"
+qry -u "$UNAME" -p "$PASS" -d master -s "$SRV" -q "$sql" >&2 
+exit $?

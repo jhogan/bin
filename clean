@@ -1,0 +1,31 @@
+#!/bin/bash
+FILE=~/jjh/trunks/var/db/clean
+PERFECT=.953
+MEDIOCRE=`echo "scale=3; $PERFECT / 3" | bc`
+
+total=0
+IFS=$'\n'
+for line in `cat "$FILE"`; do
+    unset IFS
+    l=`echo -n "$line" | sed "s/ *//g"`
+    if [ "$l" != "T:" ]; then
+        t=`echo -n "$l" | sed "s/[^t]//g" |wc -m`
+        m=`echo -n "$l" | sed "s/[^m]//g" |wc -m`
+        p=`echo -n "$l" | sed "s/[^p]//g" |wc -m`
+        
+
+        perfectscore=`echo "scale=3; $PERFECT * $p" | bc`
+        mediocrescore=`echo "scale=3; $MEDIOCRE * $m" | bc`
+        score=`echo "scale=3; $perfectscore + $mediocrescore" | bc`
+        echo "$line $score"
+        total=`echo "scale=3; $score + $total" | bc`
+    else
+        [ "$total" = "0" ] && continue
+        echo
+        echo "Total: $total"
+        total=0
+    fi
+done
+
+
+

@@ -1,0 +1,60 @@
+#!/bin/sh
+PATTERN=$1
+SRC=$2
+DEST=$3
+
+DRY=0
+
+complain(){
+    me=$(basename $0)
+    echo ""
+    echo "Usage: $me pattern src dest" >/dev/stderr
+    exit 1
+}
+
+if [ -z $PATTERN ]; then
+    echo "Pattern is missing" >/dev/stderr
+    complain
+fi
+if [ -z $SRC ]; then
+    echo "Source is missing" >/dev/stderr
+    complain
+fi
+if [ -z $DEST ]; then
+    echo "Destination is missing" >/dev/stderr
+    complain
+fi
+
+if [ ! -d $SRC ]; then
+    echo "Source is not a directory" >/dev/stderr
+    complain
+fi
+
+
+if [ ! -d $DEST ]; then
+    echo "Destination is not a directory" >/dev/stderr
+    complain
+fi
+
+if [ $DEST = $SRC ]; then
+    echo "Destination and source match" >/dev/stderr
+    complain
+fi
+
+for file in $(find $SRC | egrep "$PATTERN"); 
+do
+    destdir=$(dirname $file)
+    if [ $SRC != '.' ]; then
+        esc_src=$(echo $SRC | sed -e s!\\.!\\\\.!g)
+        destdir=$(echo $destdir | sed -e s!$esc_src!!)
+    fi
+    destdir=$DEST$destdir
+    if [ $DRY = 1 ]; then
+        echo "mkdir: $destdir"
+        echo "cp: $file - $destdir"
+    else
+        mkdir -p "$destdir"
+        cp -v "$file" "$destdir"
+    fi
+done
+

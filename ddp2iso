@@ -1,0 +1,55 @@
+#!/bin/sh
+
+. ~/trunks/bin/jjhfunctions
+
+function usage(){
+    warn "$1"
+    die "Usage: $ME -d <.dat file> -i <iso output file>"
+}
+
+while getopts "d: i:" opt
+do
+    case "$opt" in
+            i) ISO="$OPTARG";;
+            d) DAT="$OPTARG";;
+    esac
+done
+
+TMP=/tmp/$ME
+HDRFILE="$TMP/hdr"
+HDROFFSET=38940
+
+mkdir -p $TMP || die "mkdir $TMP"
+
+
+[ -n "$DAT" ] || usage ".DAT file (-d) not provided"
+[ -r "$DAT" ] || usage "Can't read from .DAT file: $DAT"
+
+[ -z "$ISO" ] && ISO="`pwd`/img.iso"
+[ -d "$ISO" ] && usage "-i is an existing directory."
+
+DIRNAME="`dirname "$ISO"`" || die "dirname $ISO"
+
+[ -e "$DIRNAME" ] || usage "Not a directory: $DIRNAME"
+
+
+# Have to store header in file since bash variables
+# can't contain null chars (http://stackoverflow.com/questions/6570531/assign-string-containing-null-character-0-to-a-variable-in-bash)
+head -n1 "$DAT" > $HDRFILE || die "head $DAT"
+hdrlen=`wc -c $HDRFILE| awk '{print $1}'`
+
+[ $hdrlen -lt $HDROFFSET ] && die "Header length is greater than the assumed offset."
+
+offset=$(($hdrlen - $HDROFFSET))
+
+[ $offset -le 0 ] && die "Offset is less than or equal to 0"
+
+warn "Creating header"
+cat "$HDRFILE" | cut -b$offset- > "$ISO" || die "cat $HDRFILE"
+
+warn "Creating body"
+bodylines=`wc -l "$DAT" | awk '{print $1}'` ||die "wc $DAT"
+tail -n$bodylines "$DAT"  >> "$ISO" || die "tail $DAT"
+
+warn "Testing validity"
+7z l "$ISO" >/dev/null || die "ISO validity test failed: err: $?; $ISO"

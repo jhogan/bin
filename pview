@@ -1,0 +1,6 @@
+#! /bin/sh
+. jjhfunctions
+
+PROC=$1
+[ -z "$PROC" ] && die "missing proc"
+pcat "$1"| vim - -c"set syn=sql ts=4"

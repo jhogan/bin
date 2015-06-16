@@ -1,0 +1,33 @@
+#!/bin/sh
+. jjhfunctions
+
+function usage(){
+        warn "$1"
+        die "Usage: $ME -P program -u uid -p pwd -d database -s server proc"
+}
+
+while getopts "P: u: p: d: s: " opt
+do
+    case "$opt" in
+            P) PROG="$OPTARG";;
+            u) UNAME="$OPTARG";;
+            p) PASS="$OPTARG";;
+            d) DB="$OPTARG";;
+            s) SRV="$OPTARG";;
+    esac
+done
+
+shift $(($OPTIND-1))
+PROC=$1
+
+if [ -z "$PROG" ]; then
+    [ -z "$DB"  ] && DB=$DF_DB
+    [ -z "$SRV" ] && SRV=$DF_SRV
+fi
+
+resolveprog
+
+[ -z "$PROC"   ] && die 'no proc specified'
+# The sed lines moved leading and trailing (respectivly) blank lines from output
+qry -T -u "$UNAME" -p "$PASS" -d "$DB" -s "$SRV"  -q"select object_definition(object_id('dbo.$PROC'))" \
+    | sed '/./,$!d' | sed -e :a -e '/^\n*$/{$d;N;};/\n$/ba'

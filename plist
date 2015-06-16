@@ -1,0 +1,67 @@
+#! /bin/sh
+SVNFILE=svn://localhost/trunks/var/db/plist.cpt
+ME=`basename $0`
+
+while getopts "e" opt
+do
+    case "$opt" in
+            e) EDIT=1;;
+    esac
+done
+
+function usage(){
+        echo "Usage: $ME KEYWORD"
+        exit 1
+}
+function die(){
+        echo "$1"
+        exit 1
+}
+
+function search(){
+    keyword=$1
+    test -z "$keyword" && usage
+    svn cat $SVNFILE| \
+            ccrypt -c | \
+            awk -F"\t" "    
+                    BEGIN {
+                        IGNORECASE=1;
+                        OFS=\"\t\"
+                    } 
+                    \$3 ~ /$keyword/ {print \$0};" |\
+            sep2tab -t
+    read -p "press a key to clear screen"
+    clear
+}
+
+function edit(){
+        bin=vi; test -x `which $bin` || die "missing $bin"
+        umask 077
+        svndir=`dirname "$SVNFILE"`
+        svnbase=`basename "$SVNFILE"`
+        tmpdir=/tmp/$ME
+        file=$tmpdir/$svnbase
+        editfile=${file}.edit
+        test -e "$tmpdir" && \
+                read -p "$tmpdir exists. I will delete." 
+
+        rm -rfv "$tmpdir"                        || die
+        mkdir "$tmpdir"                          || die 
+        svn -N co $svndir $tmpdir>/dev/null      || die 
+        ccdecrypt -c $file > $editfile           || die
+        vi $editfile                             || die
+        ccencrypt $editfile                      || die
+        editfile=${editfile}.cpt                 || die
+        mv $editfile $file                       || die
+        svn ci -m"update $file" $file            || die
+        rm -rfv "$tmpdir" >/dev/null             || die 
+}
+
+bin=svn;    test -x "`which $bin 2>/dev/null`" || die "missing $bin"
+bin=ccrypt; test -x "`which $bin 2>/dev/null`" || die "missing $bin"
+
+if test "$EDIT" = 1 ; then
+    edit
+else
+    search $1
+fi

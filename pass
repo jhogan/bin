@@ -1,0 +1,38 @@
+#!/bin/sh
+. jjhfunctions
+PWDFILE=$1
+ID=$2
+ACCT=$3
+listids=0
+listaccts=0
+function usage(){
+        echo "$1" 1>&2
+        echo "Usage: $ME FILE [id] [account]"
+        exit 1
+}
+
+[ -r "$PWDFILE" ] || usage 'File not found'
+
+if [ -z "$ID" ] ; then
+        listids=1
+else
+        if [ -z "$ACCT" ]; then
+                listaccts=1
+        fi
+fi
+
+if [ $listids -eq 1 ]; then
+        ccrypt -d -c $PWDFILE | awk '$1 != "" {print $1}'
+        exit 0
+fi
+
+if [ $listaccts -eq 1 ]; then
+        awkcode='$1 = $ID'
+
+        die "$awkcode"
+        ccrypt -d -c $PWDFILE | awk 
+        exit 0
+fi
+
+
+

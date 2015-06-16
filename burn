@@ -1,0 +1,40 @@
+#! /bin/sh
+. jjhfunctions
+
+ISO=/tmp/img.iso
+
+
+# DEV is the cd device. This value is discovered by running `wodim -scanbus`
+# If this command fails on linux, try `wodim dev=/dev/cdrom -scanbus`.
+DEV=2,0,0
+
+while getopts ":v: d:" opt
+do
+    case "$opt" in
+            v) VOL="$OPTARG";; # Volumn name/label for cd
+            d) DIR="$OPTARG";; # Directory to cp to cd
+    esac
+done
+
+function usage(){
+        echo "$1"
+        warn "Usage: $ME -v volume/label -d dir"
+        exit 1
+}
+demandbin genisoimage
+demandbin wodim
+
+
+[ -z "$VOL" ] && usage 'missing -v'
+[ -z "$DIR" ] && usage 'missing -d'
+
+rm -v "$ISO" 2>/dev/null
+
+echo "$ME: Create iso"
+# Create iso from DIR. The -J -R -l options keep genisoimage from uppercasing
+# and truncating the file names.
+genisoimage -J -R -l -V "$VOL" -o "$ISO" -R "$DIR"
+
+echo "$ME: Burn"
+# Burn
+wodim -v speed=2 dev=$DEV "$ISO"

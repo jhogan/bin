@@ -1,0 +1,15 @@
+#!/bin/bash
+. jjhfunctions
+
+FILE=$1
+
+function usage(){
+        echo "$1"
+        die "Usage: $ME FILE"
+}
+
+[ -z "$FILE" ] && usage 'specify FILE'
+
+[ -r "$FILE" ] || usage "Can't read: $FILE"
+
+sed -e ':a;N;$!ba;s/\n\([^\n]\)/\1/g'  -e "s/<br>/\n/g" "$FILE"

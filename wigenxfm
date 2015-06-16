@@ -1,0 +1,10 @@
+#!/bin/bash
+VBS="`pwdms $0.vbs`"
+
+[ -n "$1" ] && a1="`pwdms $1`"
+[ -n "$2" ] && a2="`pwdms $2`"
+[ -n "$3" ] && a3="`pwdms $3`"
+
+cscript "$VBS" "$a1" "$a2" "$a3" 
+
+

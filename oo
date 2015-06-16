@@ -1,0 +1,141 @@
+#! /bin/bash
+
+OO_IX=0
+function die(){
+    echo "$1"; exit
+}
+function ctor(){
+    local typ=${FUNCNAME[1]}
+    typ=${typ/%__*/}
+
+    OO_R="oo_invoke $OO_IX"
+    types[$OO_IX]=$typ
+    let OO_IX++
+}
+
+function oo_getoid(){
+    local obj="$1"
+    local id=${obj:10}
+    R=$id
+}
+
+function oo_getobjtype(){
+    local oid=$1
+    R=${types[$oid]}
+}
+
+function oo_invoke(){
+    local typ method oid call i
+    local me val
+
+    call="$1"
+    echo "ARG1: $1"
+    shift
+
+    methodcount=${call//[^.]/}; 
+    methodcount=${#methodcount}
+
+    oid=${call/%.*/}
+    me="oo_invoke $oid"
+    oo_getobjtype $oid; typ=$R
+    call=${call#*.}
+    method=${call%%.*}
+    method="${typ}__${method}"
+
+    echo "$method $me $@"
+
+    if [ $methodcount -eq 1 ]; then
+        $method "$me" "$@"
+    else
+        $method "$me" 
+    fi
+
+    val="$R"
+    echo "V: $val"
+    
+    if [ $methodcount -ne 1 ]; then
+        oid=${val/oo_invoke /}
+        call=${call#*.}
+        call="$oid.$call"
+        echo -e "\n Recurse"
+        echo  "$call"
+        oo_invoke $call
+    fi
+}
+
+function oo_getdataix(){
+    local oid=$1
+    local prop=$2
+    local found=false
+    local p
+    local i=0
+
+    for p in "${OO_DATAIXES[@]}"; do
+        oid0=${p/% */}
+        prop0=${p/#* /}
+        [ $prop = $prop0 -a $oid -eq $oid0 ] && \
+            found=true && break
+        let i++
+    done
+
+    if ! $found; then
+        OO_DATAIXES[$i]="$oid $prop"
+    fi
+    R=$i
+}
+
+function oo_val(){
+    local obj="$1"
+    local val="$2"
+
+    local oid
+    local prop=${FUNCNAME[1]}
+    
+    oo_getoid "$obj";      oid=$R
+    oo_getdataix $oid $prop; dix=$R
+
+    [ -n "$val" ] && OO_DATA[dix]="$val"
+
+    R="${OO_DATA[$dix]}"
+}
+
+# person
+function person__new(){
+    ctor
+    R="$OO_R" 
+}
+
+function person__age(){
+    oo_val "$1" "$2" 
+}
+
+function person__name(){ 
+    oo_val "$1" "$2"
+}
+
+function person__computer() {
+    oo_val "$1" "$2"
+}
+
+# computer
+function computer__new(){ 
+    ctor; 
+    R="$OO_R" 
+}
+
+function computer__name(){ 
+    oo_val "$1" "$2" 
+}
+
+person__new;   p="$R"
+computer__new; c="$R"
+
+$c.name "homer"
+
+$p.computer "$c"
+
+
+$p.computer.name "nothomer"
+$p.computer.name; c="$R"
+
+echo "Computer Name: $c"

@@ -1,0 +1,2 @@
+#! /bin/sh
+time links -source "$1" >/dev/null

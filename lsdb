@@ -1,0 +1,21 @@
+#!/bin/sh
+. jjhfunctions
+
+function usage(){
+        warn "$1"
+        die "Usage: $ME -u uid -p pwd -s server "
+}
+
+while getopts "P: u: p: s: " opt
+do
+    case "$opt" in
+            P) PROG="$OPTARG";;
+            u) UNAME="$OPTARG";;
+            p) PASS="$OPTARG";;
+            s) SRV="$OPTARG";;
+    esac
+done
+DB=IGNORE
+resolveprog
+
+qry -T -u "$UNAME" -p "$PASS" -d "master" -s "$SRV"  -q"select name from sysdatabases"

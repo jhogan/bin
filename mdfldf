@@ -1,0 +1,25 @@
+#!/bin/sh
+. jjhfunctions
+usage(){
+        echo $1
+        echo "Usage: $ME -P prog -u user -p pass -s server -d database"
+        exit 1
+}
+
+while getopts "P:u:p:d:s:" opt
+do
+    case "$opt" in
+            P) PROG="$OPTARG";;
+            u) UNAME="$OPTARG";;
+            p) PASS="$OPTARG";;
+            d) DB="$OPTARG";;
+            s) SRV="$OPTARG";;
+    esac
+done
+
+resolveprog
+[ -z "$DB"  ] && usage 'Missing -d'
+[ -z "$SRV" ] && usage 'Missing -s'
+
+sql="select rtrim(physical_name) from sys.database_files order by type"
+qry -u "$UNAME" -p "$PASS" -T -d $DB -s "$SRV" -q "$sql" 

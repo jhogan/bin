@@ -1,0 +1,31 @@
+#! /bin/bash
+
+# Cygwin friendly wraps for DOS mklink
+
+# TODO: If the link is a directory, /D should be passed in
+# automatically. Otherwise, a file is created that only cygwin seems to
+# see as a link to the directory. Explorer and cmd don't know what to make
+# of it.
+
+# TODO: If target is missing, default to the current directory and use the
+# base name of LINK
+
+FLAG=
+while getopts "dhj" opt
+do
+    case "$opt" in
+            d) FLAG+=" /D ";;  # directory
+            h) FLAG+=" /H ";;  # hard
+            j) FLAG+=" /J ";;  # junction
+    esac
+done
+shift $(($OPTIND-1))
+TARGET=`cygpath -wa "$1"`
+LINK=`cygpath -wa "$2"`
+
+echo "cmd /c mklink $FLAG "$LINK" "$TARGET""
+
+cmd /c mklink $FLAG "$LINK" "$TARGET"
+
+
+

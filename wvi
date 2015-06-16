@@ -1,0 +1,10 @@
+#! /bin/bash
+. jjhfunctions
+BIN=$1
+
+[ -z "$BIN" ] && die "Enter file name."
+
+BIN=`which $BIN`
+[ -z "$BIN" ] && die "File not found."
+
+vim `which $BIN`

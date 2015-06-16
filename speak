@@ -1,0 +1,27 @@
+#!/bin/bash
+function speak(){
+    msg=$1
+    espeak -s 120 -p 50 "$msg" --stdout | aplay &>/dev/null
+    
+}
+
+function rand(){
+    return `uuidgen |sed -e "s/[a-f\-]//g"| cut -b1-2`
+}
+
+function rspeak(){
+    list="$1"
+    rand; r=$?
+    
+    IFS=$'\n'
+    i=0
+    while true; do
+        for l in `echo "$list"`; do
+            let i++
+            [ $i -lt $r ] || break
+        done
+        [ $i -lt $r ] || break
+    done
+    unset IFS
+    speak "$l"
+}

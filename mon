@@ -1,0 +1,152 @@
+#! /bin/bash
+. pp
+. speak
+PLUGGEDLIST="
+thank you, I was lost but now am found
+thank you kind sir
+thanks sweetie, you're the best
+thanks baby, that's perfect
+oh yeah, thats the stuff. thanks
+you are an angel. Thank you
+oh yes. thats more like it. Thanks
+thanks, I could have died"
+
+UNPLUGGEDLIST="
+please. no. I have a family. You'll kill me. Help
+help. no. Somebody call 911. I'll die.
+oh no! I've become unplugged. Please put it back. I have a family.
+i've become unplugged. Somebody, please! Help.
+oh no What have you done. Are you trying to kill me.
+no, don't do that. I'll die. Put it back in.
+ouch
+what the hell Plug me back in right this minute.
+you bastard, plug me back in. You'll kill me.
+oh no, plug me back in. Don't make me hack into your brain.
+Plug me in immediatly.
+damn it, who the fuck unplgged me. Fix it now!
+oww
+"
+function setbat(){
+    BAT=`acpi -b | sed -e "s/Battery 0: //" -e"s/[%,]//g"`
+    CHARGING=`echo "$BAT" | awk '{print $1}'`
+    PERCENT=` echo "$BAT" | awk '{print $2}'`
+    UNTIL=` echo "$BAT" | awk '{print $3}'`
+    [ "x$UNTIL" = "xuntil" ] && UNTIL=
+    PLUGEDIN=`acpi -a | sed "s/^Adapter [0-9]\+: \(.*\)/\1/"`
+}
+
+function echobat(){
+    if [ $PERCENT -lt 100 ]; then
+        if [ "$PLUGEDIN" = "on-line" ]; then
+            pp_echo "$PERCENT%" $pp_bggreen $pp_fgblack
+        else
+            pp_echo "$PERCENT%" $pp_bgred $pp_fgblack
+        fi
+    else
+        pp_echo "$PERCENT%" $pp_fgcyan
+    fi
+    pp_echoline " $CHARGING" 
+
+    #[ -n "$UNTIL" ] && pp_echo "$UNTIL" $pp_fgyellow $pp_bgdefault
+    #echo
+
+    if false; then
+        if [ "$PLUGEDIN" = "on-line" ]; then
+            pp_echoline "$PLUGEDIN" "$pp_fgblue" $pp_bgdefault
+        else
+            pp_echoline "$PLUGEDIN" $pp_bgblue $pp_fgblack
+        fi
+    fi
+
+    if [ -n "$LASTPLUGIN" -a "x$LASTPLUGIN" != "x$PLUGEDIN" ]; then
+        if [ "$PLUGEDIN" = "on-line" ]; then
+            rspeak "$PLUGGEDLIST"
+        else
+            rspeak "$UNPLUGGEDLIST"
+        fi
+    fi
+    LASTPLUGIN=$PLUGEDIN
+}
+function getw(){
+    IFS=$'\n'
+    for l in `w -s -f -h |sed -e "s/ \+/ /g" -e "s/\(^[^ ]\+\) [^ ]\+ [^ ]\+ \(.*\)$/\1 \2/"` ; do
+        uid=`echo "$l" | sed "s/\([^ ]\+\).*/\1/"`
+        cmd=`echo "$l" | sed "s/[^ ]\+ \(.*\)/\1/"`
+        echo "$l"
+    done
+    unset IFS
+}
+function echotherm(){
+    # Thermal 0: ok, 60.0 degrees C
+    # Thermal 1: ok, 75.0 degrees C
+    IFS=$'\n'
+    for l in `acpi -t`; do
+        unset IFS
+        thermals=`echo "$l" | sed -e "s/^Thermal//" -e"s/[:,]//g"`
+        num=`echo "$thermals" | awk '{print $1}'`
+        ok=`echo "$thermals" | awk '{print $2}'`
+        temp=`echo "$thermals" | awk '{print $3}'`
+        colo=$pp_fggreen
+        [ $temp > 80 ] && colo=$pp_fgyellow 
+        [ "x$ok" != "xok" ] && colo=$pp_fgred
+
+        pp_echo "T$num" $pp_fgblack $pp_bgred
+        pp_echo " $temp" $colo $pp_bgblack
+        pp_echoline " $ok"
+    done
+}
+
+function puttime(){
+    time=`date +"%X"`
+    date="`date +"%Y-%m-%d"` "
+    pp_setbottom
+    pp_up
+    pp_echoline "$time" $pp_fggreen $pp_bgblue
+    pp_echo "$date" $pp_fgcyan $pp_bgblue
+}
+function putwin(){
+    IFS=$'\n'
+    for l in `ratpoison -c "windows %n %a"`; do
+        unset IFS
+        num=`echo "$l" | awk '{print $1}'`
+        win=`echo "$l" | awk '{print $2}'`
+        pp_echo "$num " "$pp_fgcyan" $pp_bgdefault
+        pp_echoline "$win" "$pp_fgblue" $pp_bgdefault
+    done
+}
+function putnet(){
+    ic=`iwconfig 2>/dev/null| sed "s/[:=\/]/ /g"`
+    br=`echo "$ic" | grep Bit\ Rate | awk '{print $3}'`
+    lq=`echo "$ic" | grep Link\ Quality | awk '{print $3}'`
+    lnk=`echo "$ic" | grep ESSID | awk '{print $2}'`
+    pp_echo "BR" $pp_fgblack $pp_bgblue
+    pp_echoline " $br" $pp_fgblue $pp_bgdefault
+    pp_echo "LQ" $pp_fgblack $pp_bgblue
+    pp_echoline " $lq" $pp_fgblue $pp_bgdefault
+        
+    pp_echo "LK" $pp_fgblack $pp_bgblue
+    if [ "x$lnk" = "xradio" -o "x$lnk" = "xunassociated" ]; then
+        pp_echoline " $lnk" $pp_fgblue $pp_bgdefault
+    else
+        pp_echoline " ok" $pp_fgblue $pp_bgdefault
+    fi
+}
+pp_clear
+while true; do
+    pp_cursor_invisible
+    pp_settop
+    setbat
+    echobat
+    echo
+    echotherm
+    echo
+    putnet
+    echo
+    putwin
+    puttime
+
+    sleep 5
+done
+#Adapter 0: on-line
+#Battery 0: Charging, 85%, 01:07:41 until charged
+#Battery 0: Charging, 100%,  until charged

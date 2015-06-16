@@ -1,0 +1,117 @@
+#! /bin/bash
+# TODO: setup wg
+# TIP: On the Latitude D630 install wicd and remove the other network managers, then reboot. 
+# This is how you get it wireless to work. http://ubuntuforums.org/showthread.php?t=1491147
+# sudo apt-get install wicd # Be sure this is install or there will be no network wired or otherwise.
+# sudo apt-get purge network-manager-gnome
+# sudo apt-get purge network-manager
+# sudo reboot
+PATH="$PATH:~/jjh/trunks/bin"
+
+. jjhfunctions
+
+SMBPWD=/etc/smbpwd
+
+NAME=`hostname`
+function usage(){
+        echo "$1"
+        die "Usage: $ME "
+}
+
+function islap(){
+	[ $NAME = "lisa" ] && return 0
+	return 1
+}
+function bk(){
+	src=$1
+	dest=$2
+
+	bk=`dirname "$dest"`/`basename "$src"`.orginal
+	if [ -e "$bk" ]; then
+		warn "Backup file already exists: $bk"
+		return 1
+	else
+		cp -v "$src" "$bk"
+	fi
+	return 0
+}
+
+function append(){
+	src=$1
+	dest=$2
+	[ -r "$src" ] || usage "(append) Source not found $src; dest: $dest"
+
+	bk "$src" "$dest" || return
+	echo "cat $src" 
+	cat "$src" >> "$dest"
+}
+
+function copy(){
+	src=$1
+	dest=$2
+	[ -r "$src" ] || usage "(copy) Source not found $src; dest: $dest"
+	bk "$src" "$dest"
+	cp -v "$src" "$dest"
+}
+
+[ "`whoami`" = "root" ] || die "Must be root. Create root account first and use that. Don't use sudo."
+
+islap 
+islap=$?
+
+apt-get install firefox vim rxvt screen gnucash \
+				openoffice.org htop ctags mplayer bashdb\
+				espeak vlc links ccrypt gcompris \
+				traceroute subversion ngrep smbfs acpi pv\
+                ratpoison console-data flashplugin-nonfree xclip \
+                wicd-curses wicd-cli wicd-gtk git
+
+
+[ $islap -eq 0 ] && apt-get install wicd
+
+mkdir --parent -v /mnt/jhogan /mnt/dhogan/ /mnt/sdb1 /mnt/apu/data 2>/dev/null
+
+
+# Setup syset files
+
+append /root/jjh/trunks/etc/all/hosts     /etc/hosts
+append /root/jjh/trunks/etc/${NAME}/fstab /etc/fstab
+
+
+# Remove splash screen so normal boot messages appear
+bk /etc/default/grub /etc/default/grub.original 
+sed -i "s/^GRUB_CMDLINE_LINUX_DEFAULT=.*/GRUB_CMDLINE_LINUX_DEFAULT=/" /etc/default/grub 
+update-grub
+
+[ "$NAME" = "bart" ] && crontab /root/jjh/trunks/etc/bart/crontab
+
+update-alternatives --set editor /usr/bin/vim.basic
+
+# Setup root
+copy /root/jjh/trunks/etc/all/vimrc /root/.vimrc
+copy /root/jjh/trunks/etc/all/ratpoisonrc  /home/jhogan/.ratpoisonrc
+mkdir  /root/.ssh/
+#append /root/jjh/trunks/etc/all/ssh/id_dsa /root/.ssh/id_dsa
+#chmod 600 /root/.ssh/id_dsa
+append /root/jjh/trunks/etc/lisa/bashrc /root/.bashrc
+
+# Setup jhogan
+copy /root/jjh/trunks/etc/all/vimrc /home/jhogan/.vimrc
+copy /root/jjh/trunks/etc/all/ratpoison.desktop  /usr/share/xsessions/
+copy /root/jjh/trunks/etc/all/ratpoisonrc  /home/jhogan/.ratpoisonrc
+#append /root/jjh/trunks/etc/all/ssh/id_dsa /home/jhogan/.ssh/id_dsa
+append /root/jjh/trunks/etc/lisa/bashrc /home/jhogan/.bashrc
+
+#chown jhogan /home/jhogan/.ssh/id_dsa
+#chmod 600    /home/jhogan/.ssh/id_dsa
+
+>$SMBPWD
+chmod 700 $SMBPWD
+read -p "Type password for samba share: " pwd
+echo "username=dhogan" >> $SMBPWD
+echo "password=$pwd" >> $SMBPWD
+
+mount /mnt/jhogan 
+mount /mnt/dhogan/ 
+mount /mnt/sdb1 
+mount /mnt/apu/data 

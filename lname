@@ -1,0 +1,38 @@
+#! /bin/sh
+. jjhfunctions
+usage(){
+        echo $1
+        echo "Usage: $ME -P prog -u user -p pass -s server -b bak"
+        exit 1
+}
+
+while getopts "P:u:p:d:b:s:" opt
+do
+    case "$opt" in
+            P) PROG="$OPTARG";;
+            u) UNAME="$OPTARG";;
+            p) PASS="$OPTARG";;
+            s) SRV="$OPTARG";;
+            b) BK="$OPTARG";;
+    esac
+done
+
+DB=master
+resolveprog
+
+[ -z "$SRV" ] && usage 'Missing -s'
+[ -z "$BK" ]  && usage 'Missing -b'
+[ -z "$BK" ]  && usage "Cant find BK: $BK"
+
+BK_MS=`cygpath -wa $BK`
+
+sql="restore filelistonly from disk = '$BK_MS'"
+out=`qry -u "$UNAME" -p "$PASS" -d $DB -s $SRV -q"$sql"`  
+err=$?
+if [ $err -ne 0 ]; then
+    warn "$out"; exit $err
+fi
+
+echo "$out" | awk '$1 ~ /.*_log/ || $1 ~ /.*_dat/  {print $1}'
+
+

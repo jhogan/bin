@@ -1,0 +1,5 @@
+#!/usr/bin/bash
+
+# svn st that ignores Visual Studio files that shouldn't be
+# committed.
+svn st | egrep -iv "/(bin|obj|Debug)$" | egrep -vi "\.(suo|user)$"

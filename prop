@@ -1,0 +1,64 @@
+#! /bin/bash
+
+. jjhfunctions
+
+function resolvetype(){
+    # Note this takes advantage of the fact
+    # that variables are global by default
+    t=`lc "$type"`
+    [ "$t" = 'b' ] && type='Boolean'
+    [ "$t" = 'i' ] && type='Integer'
+    [ "$t" = 's' ] && type='String'
+    [ "$t" = 'l' ] && type='Long'
+    [ "$t" = '' ]  && type="$name"
+}
+
+# For each white-space deliminated string ...
+for prop in "$@"; do
+    
+    # Split the comma delimitated string and
+    # assign to variables
+    IFS=','
+    read name type access <<< "$prop"
+    unset IFS
+    
+    [ -z "$name" ] && continue
+    
+    # Capitalize and uncapitalize
+    first=${name:0:1}; rest=${name:1}
+    nameupper=`uc $first`$rest
+    namelower=`lc $first`$rest
+    field=m$namelower
+
+    # Convert abreviations of common types
+    # to proper type names (i -> Integer)
+    resolvetype $type
+
+    # Convert abreviated access level to VB 
+    # keyword (r -> ReadOnly)
+    access=`lc $access`
+    [ "$access" = 'r' ] && access="ReadOnly"
+    [ "$access" = 'w' ] && access="WriteOnly"
+    [ "$access" = 'rw' -o "$access" = "wr" ] && access=""
+
+    # Print out field followed by property 
+    [ "$access" = 'r' ] || echo "Private $field as $type"
+    echo "Public $access Property $nameupper as $type"
+
+    # Accessor
+    if [ "$access" = "ReadOnly" -o -z "$access" ]; then
+        echo "    Get"
+        echo "        return $field"
+        echo "    End Get"
+    fi
+
+    # Mutator
+    if [ "$access" = "WriteOnly" -o -z "$access" ]; then
+        echo "    Set(value as $type)"
+        echo "        $field = value"
+        echo "    End Set"
+    fi
+    echo "End Property"
+    echo ""
+done
+

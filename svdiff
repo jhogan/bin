@@ -1,0 +1,2 @@
+#! /bin/bash
+svn diff --diff-cmd ~/trunks/bin/vimdiff-svn-wrapper

@@ -1,0 +1,4 @@
+#!/bin/bash
+FILE="$1"
+[ -n "$FILE" ] || FILE=.
+svn info "$FILE" | grep ^URL| sed "s;^URL: ;;"

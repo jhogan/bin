@@ -1,0 +1,16 @@
+#! /usr/bin/python
+import sys
+from BeautifulSoup import BeautifulSoup
+from BeautifulSoup import BeautifulStoneSoup
+
+if len(sys.argv) != 2:
+    sys.stderr.write ("give 1 file")
+    sys.exit(1)
+
+htmlfile=sys.argv[1]
+
+sp=BeautifulSoup(open(htmlfile))
+print(sp.prettify().replace(chr(13), ''))
+
+
+

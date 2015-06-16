@@ -1,0 +1,96 @@
+#! /bin/bash
+. jjhfunctions
+
+FILE=baby
+SVNSERV=192.168.1.4
+SVNDIR=file:///var/db/svn/repo/trunks/var/db
+SVNFILE=${SVNDIR}/${FILE}
+WORKINGDIR=~/baby
+WORKINGFILE=${WORKINGDIR}/${FILE}
+
+CAT=false
+EDIT=false
+RPT=false
+
+while getopts "c e r" opt
+do
+    case "$opt" in
+            c) CAT=true;;
+            e) EDIT=true;;
+            r) RPT=true;;
+    esac
+done
+
+shift $(($OPTIND-1))
+CC=$1
+
+function usage(){
+        echo "$1"
+        die "Usage: [ -c (cat) ] [ -e (edit) ] [ -r (report) ] CC's"
+}
+
+[ -x /usr/bin/svn ] || die "ain't no svn around here. can't do my job without that"
+
+if uname -o | grep -i "cygwin" >/dev/null; then
+	MS=true
+else
+	MS=false
+fi
+if ! $CAT && ! $EDIT && ! $RPT; then
+	[ -z "$CC" ] && usage "Don't forget to enter CC's or you can use -c -r or -e to view file"
+fi 
+
+if [ -d "$WORKINGDIR" ]; then
+	svn up "$WORKINGDIR" || die "svn update $WORKINGDIR failed"
+else
+	svn co "$SVNDIR" "$WORKINGDIR" || die "svn checkout $SVNDIR -> $WORKINGDIR failed"
+fi
+
+if $CAT; then
+	svn cat "$SVNFILE" || die "Couldn't cat file from svn"
+elif $EDIT; then
+	[ -z "$EDITOR" ] && die "\$EDITOR not set"
+	if $MS; then
+		WORKINGFILE=`cygpath -wa $WORKINGFILE`
+	fi
+	"$EDITOR" "$WORKINGFILE"
+elif $RPT; then
+	echo "date  count ccs avg"
+	echo "-------------------"
+	IFS=$'\n'
+	for line in $(cat $WORKINGFILE); do
+		IFS=,; set -- "$line"; declare -a line=($*)
+		uid=${line[0]}; date=${line[1]}; cc=${line[2]};
+		thisdom=${date:3:2}
+		if [ "$prevdom" = "$thisdom" ]; then
+			ccsum=$(( $ccsum + $cc ))
+			let cnt++
+		elif [ -n "$prevdom" ] ; then
+			strcnt=$cnt; [ $cnt -lt 10 ] && strcnt="${cnt} "
+			echo "$prevdate $strcnt    $ccsum $(( $ccsum / $cnt ))"
+			cnt=1; ccsum=$cc
+		else
+			# first iter
+			cnt=1; ccsum=$cc
+		fi
+		prevdom=$thisdom
+		prevdate=${date:0:5}
+	done
+	strcnt=$cnt; [ $cnt -lt 10 ] && strcnt="${cnt} "
+	echo "$prevdate $strcnt    $ccsum $(( $ccsum / $cnt ))"
+	IFS=" "
+else
+	if [ ! -w "$WORKINGFILE" ]; then
+		die "Can't write to file: '$FILE'. Check permissions."
+	fi
+
+	entry="`whoami`,`date +"%D %r"`,$CC"
+	echo "Entering: $entry >> $WORKINGFILE"
+	echo "$entry" >> $WORKINGFILE
+fi
+
+if $EDIT || [ -n "$CC" ];  then
+	sed -i "s///g" "$WORKINGFILE"
+	svn ci -mx "$WORKINGFILE" || die "Failed to check in file. Changes were not saved"
+fi
+

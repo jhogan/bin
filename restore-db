@@ -1,0 +1,55 @@
+#!/bin/sh
+. jjhfunctions
+usage(){
+        echo $1
+        echo "Usage: $ME -P prog -u user -p pass -s server -d database -b backup file"
+        exit 1
+}
+
+while getopts "P:u:p:d:b:s:" opt
+do
+    case "$opt" in
+            P) PROG="$OPTARG";;
+            u) UNAME="$OPTARG";;
+            p) PASS="$OPTARG";;
+            d) DB="$OPTARG";;
+            s) SRV="$OPTARG";;
+            b) BK="$OPTARG";;
+    esac
+done
+
+resolveprog
+
+[ -z "$BK" ] && usage 'Missing -b'
+[ -e "$BK" ] || warn "WARNING: Backup file doesn't exist locally at $BK"
+MS_BK=`cygpath -wa $BK`
+
+
+sql="alter database $DB set single_user with rollback immediate"
+sql="$sql restore database $DB from disk = '$MS_BK' with  replace, recovery "
+
+if [ -n "$UNAME" -a -z "$PASS" ] ;then
+        stty -echo 
+        read -p "Password: " PASS
+        stty echo 
+        echo
+        [ -z "$PASS" ] && die "must enter password"
+fi
+
+
+lnames=`lname -u "$UNAME" -p "$PASS" -s $SRV -b $BK` || die "failed to get lnames"
+lmdf=`echo "$lnames" | head -n1`
+lldf=`echo "$lnames" | tail -n1`
+
+
+mdfldf=`mdfldf -u "$UNAME" -p "$PASS" -s $SRV -d $DB` || die "failed to get db paths"
+mdf=`echo "$mdfldf"|head -n1`
+ldf=`echo "$mdfldf"|tail -n1`
+warn "mdfldf: $mdfldf"
+
+
+sql="$sql, move '$lmdf' to '$mdf'"
+sql="$sql, move '$lldf' to '$ldf'"
+
+warn "$sql"
+qry -u "$UNAME" -p "$PASS" -d master -s "$SRV" -q "$sql" >&2

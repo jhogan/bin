@@ -1,0 +1,26 @@
+#! /bin/bash
+
+# Takes an MS Service Trace "XML" file, corrects all the BS and displays it
+# in vi.
+
+. jjhfunctions
+
+SRCFILE="$1"
+FILENAME="`basename "$SRCFILE"`"
+DSTFILE="/tmp/${FILENAME}.xml"
+
+[ -e "$FILE" ] && die "File not found: $SRCFILE"
+
+echo "<root>" > $DSTFILE
+cat "$SRCFILE" >> $DSTFILE
+echo "</root>" >> $DSTFILE
+
+xmllint --format "$DSTFILE" > "${DSTFILE}0"
+
+mv "${DSTFILE}0" "$DSTFILE"
+
+sed -i -e "s/&lt;/</g" -e"s/&gt;/>/g" "$DSTFILE" 
+
+vim "$DSTFILE"
+
+

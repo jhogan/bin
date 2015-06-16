@@ -1,0 +1,22 @@
+#!/bin/sh
+. jjhfunctions
+
+function usage(){
+        warn "$1"
+        die "Usage: $ME -u uid -p pwd -s server -d db "
+}
+
+while getopts "d: u: p: s: " opt
+do
+    case "$opt" in
+            u) UNAME="$OPTARG";;
+            p) PASS="$OPTARG";;
+            s) SRV="$OPTARG";;
+            d) DB="$OPTARG";;
+    esac
+done
+
+[ -z "$SRV" ] && usage "missing -s"
+[ -z "$DB" ] && usage "missing -d"
+
+qry -T -u "$UNAME" -p "$PASS" -d "$DB" -s "$SRV"  -q"select name from sys.tables"

@@ -1,0 +1,9 @@
+#!/usr/bin/bash
+
+# Note: First cd into the directory to be cleaned then run this
+
+# Removes the unversioned files/folders in an svn working copy.
+# svn revert will leave added files behind as unversioned. So
+# to get the directory structure to a true pristine state, this
+# logic must be run. 
+svn st|grep ^?|cut -b 9-|while read f; do rm -rv "$f"; done

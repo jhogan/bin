@@ -1,0 +1,34 @@
+#!/bin/sh
+# TODO: Remove backup file if exists
+. jjhfunctions
+usage(){
+        echo $1
+        echo "Usage: $ME -P prog -s server -d database -b backup file -u user -p pass"
+        exit 1
+}
+
+while getopts "P:d:s:u:p:b:" opt
+do
+    case "$opt" in
+            P) PROG="$OPTARG";;
+            d) DB="$OPTARG";;
+            s) SRV="$OPTARG";;
+            u) UNAME="$OPTARG";;
+            p) PASS="$OPTARG";;
+            b) BK="$OPTARG";;
+    esac
+done
+
+resolveprog
+echo $DB
+
+[ -z "$DB" ] && usage 'Missing -d'
+[ -z "$SRV" ] && usage 'Missing -s'
+[ -z "$BK" ] && usage 'Missing -b'
+MS_BK=`cygpath -wa "$BK"`
+
+sql="backup database $DB to disk = N'$MS_BK' with init"
+echo $sql 1>&2
+
+qry  -u "$UNAME" -p "$PASS" -d $DB -s "$SRV" -q "$sql" >&2
+

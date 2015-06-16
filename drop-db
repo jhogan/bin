@@ -1,0 +1,25 @@
+#!/bin/sh
+. jjhfunctions
+
+while getopts "P:u:p:d:s:" opt
+do
+    case "$opt" in
+            P) PROG="$OPTARG";;
+            u) UNAME="$OPTARG";;
+            p) PASS="$OPTARG";;
+            d) DB="$OPTARG";;
+            s) SRV="$OPTARG";;
+    esac
+done
+function usage(){
+        echo "$1"
+        die "Usage: $ME -P prog -u uid -p pass -s server -d database"
+}
+
+tmp=$DB; resolveprog; DB=$tmp
+
+[ -z "$SRV"   ] && usage "Missing -s"
+[ -z "$DB"    ] && usage "Missing -d"
+
+qry -p "$PASS" -u "$UNAME" -d master -s $SRV -q "drop database $DB"
+exit $?

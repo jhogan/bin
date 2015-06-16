@@ -1,0 +1,5 @@
+#!/bin/bash
+export HISTFILE=/dev/null
+mkdir ~/dm &>/dev/null
+cd ~/dm
+wget -r "$1" &>/dev/null &

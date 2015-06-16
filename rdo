@@ -1,0 +1,18 @@
+#! /bin/sh
+CHANNEL=$1
+
+if [ -z "$CHANNEL" ] ; then
+	echo "Usage: rdo CHANNEL"
+	exit 1
+fi
+[ $CHANNEL -eq 0 ] && CHANNEL="http://di.fm/mp3/trance.pls"
+[ $CHANNEL -eq 1 ] && CHANNEL="http://somafm.com/tagstrance.pls"
+[ $CHANNEL -eq 2 ] && CHANNEL="http://stream.xtcradio.com:8069/listen.pls"
+[ $CHANNEL -eq 3 ] && CHANNEL="http://ubuntu.hbr1.com:19800/trance.ogg"
+
+if [ -z "$CHANNEL" ] ; then
+	echo "Couldn't resolve channel"
+	exit 1
+fi
+
+mplayer -cache 1000 "$CHANNEL"

@@ -1,0 +1,82 @@
+#!/bin/sh
+. ~/trunks/bin/jjhfunctions
+NOTRAILER=0
+HEADER=0
+TMPOUT=/tmp/${ME}-${$}
+SQLCMD=`which sqlcmd 2>/dev/null`
+usage(){
+        echo "$1"
+        die "Usage: $ME [ -P program | [ -u uid [-p pwd] ] ] -d database -s server [-q query | -F script] [-f sqlcmd-flags] [-h HEADER] [-T NOTRAILER]"
+}
+
+while getopts "q: d: s: f: F: u: p: P: T h" opt
+do
+    case "$opt" in
+            P) PROG="$OPTARG";;
+            u) UNAME="$OPTARG";;
+            p) PASS="$OPTARG";;
+            d) DB="$OPTARG";;
+            q) QRY=$OPTARG ;;
+            F) SCRIPT="$OPTARG";;
+            s) SRV="$OPTARG";;
+            f) FLAGS="$OPTARG";;
+            T) NOTRAILER=1;;
+            h) HEADER=1;;
+    esac
+done
+
+[ -z "$SQLCMD" ] && "Command 'sqlcmd' not found"
+[ -z "$QRY"  -a -z "$SCRIPT" ] && usage 'Missing query -q or script-file -F'
+[ -n "$QRY"  -a -n "$SCRIPT" ] && usage '-q and -F can\t be combined'
+[ -n "$PASS" -a -z "$UNAME"  ] && die   'Password given without username':
+
+ 
+resolveprog
+
+if [ -n "$UNAME" -a -z "$PASS" ] ;then
+        stty -echo 
+        Read -p "Password: " PASS
+        stty echo 
+        echo
+fi
+
+SQLCMD_PARAMS="$FLAGS"
+
+if [ $HEADER -eq 1 ]; then
+    # -y8000 truncates to 8K but at lease gives headers
+    SQLCMD_PARAMS="$SQLCMD_PARAMS -y8000"
+else
+    # -y0 ensure no header (for some reason) and truncates to 1MB (for some reason)
+    SQLCMD_PARAMS="$SQLCMD_PARAMS -y0"
+fi
+    
+SQLCMD_PARAMS="$SQLCMD_PARAMS -b -x -d $DB -S \"$SRV\""
+
+[ -n "$UNAME" ] && SQLCMD_PARAMS+=" -U $UNAME"
+
+[ -n "$PASS" ] && SQLCMD_PARAMS+=" -P '"$PASS"'" # This is fashioned to handle passwords with $ in them
+
+if [ -n "$SCRIPT" ]; then 
+    MS_SCRIPT=`cygpath -wa "$SCRIPT"` || die "Check -F value"
+    SQLCMD_PARAMS+=" -i \"$MS_SCRIPT\""
+fi
+[ -n "$QRY" ] && SQLCMD_PARAMS+=" -Q \"$QRY\""
+
+#[ $NOTRAILER -eq 1 -o $NOHEADER -eq 1 ] && SEDPIPE="|sed"
+
+[ $NOTRAILER -eq 1 ] && SEDPIPE+='|sed -e "/^([0-9]\+ rows affected)$/d" |sed -e "\$d"'
+
+# Setting -y0 turns off headers automatically for some reason. Since we usually want
+# -y0 we will use it to remove the header. If we want header we set -y8000 but the
+# output will be truncated to 8KB instead of the somewhat less ridiculous 1MB.
+# [ $NOHEADER  -eq 1 ] && SEDPIPE+=' -e "1,2 d"'
+
+set -o noglob
+# BUG: [ -n "$SEDPIPE" ] && # $? will correspond to sed. 
+#   $PIPESTATUS doesn't seem to work because of eval.
+warn "sqlcmd $SQLCMD_PARAMS $SEDPIPE "
+eval sqlcmd $SQLCMD_PARAMS $SEDPIPE 
+ret=$?
+[ $ret -eq 0 ] || echo "eval sqlcmd returned $ret"
+
+exit $ret

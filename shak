@@ -1,0 +1,32 @@
+#! /bin/bash
+TARGET="Time's glory is to command contending kings, To unmask falsehood, and bring truth to light."
+tlen=${#TARGET}
+count=0
+clear
+tput cup 10 10; echo "$TARGET"
+read
+while [ "x$m" != "x$TARGET" ]; do
+
+    r=`</dev/urandom tr -dc " ,':.A-Za-z0-9" | head -c$tlen`
+
+    [ -z "$m" ] && m=$r
+    for i in `seq 0 $tlen`; do
+        cr=${r:$i:1}; ct=${TARGET:$i:1}
+        if [ "x$cr" = "x$ct" ]; then
+            m0=$m; m=
+            for j in `seq 0 $tlen`; do
+                if [ $j -eq $i ]; then
+                    m=${m}$cr
+                else
+                    m=${m}${m0:$j:1}
+                fi
+            done
+            break
+        fi
+    done
+    c=$((c+1))
+    tput cup 15 10; echo "$m"
+    tput cup 20 10; echo "$r"
+    
+done
+echo -e " Count: $c" 

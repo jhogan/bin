@@ -1,0 +1,21 @@
+#! /bin/bash
+MIN=5
+WARNMIN=20
+bat=`acpi -b | sed -e "s/Battery 0: //" -e"s/[%,]//g"`
+percent=` echo "$bat" | awk '{print $2}'`
+
+function speak(){
+    msg="$1"
+    espeak -s 120 -p 0 "$msg" --stdout | aplay
+}
+
+if [ $percent -le $MIN ]; then
+    speak "Your battery is at $percent percent. I must sleep now. Good night." 
+    pmi action hibernate
+else
+    if [ $percent -le $WARNMIN ]; then
+        speak "Your battery is at $percent percent" 
+    fi
+fi
+
+

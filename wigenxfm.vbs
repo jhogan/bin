@@ -1,0 +1,1 @@
+/cygdrive/c/Program Files/Microsoft SDKs/Windows/v7.0/Samples/sysmgmt/msi/scripts/WiGenXfm.vbs

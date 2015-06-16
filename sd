@@ -1,0 +1,23 @@
+#!/bin/bash
+. jjhfunctions
+WORD="$1"
+LOGDIR=~/trunks/var/log/sd
+URL=http://dictionary.reference.com/browse
+FILE="$LOGDIR/$WORD"
+
+if test -e "$FILE" ; then
+    echo "This word has already been sought... "
+    read -n1 -p "`cat "$FILE"`"
+    echo "Reviewed: `date`" >> "$FILE"
+else
+    read -p "Source: "
+    if [ "x$REPLY" != 'xnvm' ]; then
+        echo "Source: $REPLY" > "$FILE" 
+        echo "First viewed: `date`" >> "$FILE"
+        svn add "$FILE"
+        svn ci -m"$ME: Adding $WORD" "$FILE"
+    fi
+fi
+
+links $URL/"$WORD" 
+

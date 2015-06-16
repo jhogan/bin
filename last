@@ -1,0 +1,4 @@
+#! /bin/bash
+# Recursivly prints files in PWD and sorts them by
+# last-modified-date
+find . -printf "%T@ %TY-%Tm-%Td %TT %p\n"|sort -n |sed "s/^[0-9\.]\+ //" 

@@ -1,0 +1,25 @@
+#! /bin/sh
+CLIP=false
+while getopts "c" opt
+do
+    case "$opt" in
+            c) CLIP=true;;
+    esac
+done
+
+shift $(($OPTIND-1))
+
+if [ -n "$1" ] ; then
+    DIR=$1
+else
+    DIR="`pwd`"
+fi
+
+out=`cygpath -w "$DIR"`
+
+if $CLIP; then
+    echo "$out" | putclip
+fi
+
+echo "$out"
+

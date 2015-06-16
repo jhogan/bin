@@ -1,0 +1,34 @@
+#! /bin/sh
+TARGET="I always pass on good advice. It is the only thing to do with it. It is never of any use to oneself."
+tlen=${#TARGET}
+count=0
+clear
+tput cup 2 10; echo -ne "$TARGET"
+while [ "x$m" != "x$TARGET" ]; do
+    r=`</dev/urandom tr -dc " ,.'A-Za-z0-9" | head -c$tlen`
+    [ -z "$m" ] && m=$r
+    mutated=0
+    for i in `seq 0 $tlen`; do
+        cr=${r:$i:1}; ct=${TARGET:$i:1}
+        if [ "x$cr" = "x$ct" ]; then
+            m0=$m; m=
+            for j in `seq 0 $tlen`; do
+               if [ $j -eq $i ]; then
+                    m=${m}$cr
+                    mutated=1
+               else
+                    m=${m}${m0:$j:1}
+               fi
+            done
+        fi
+    done
+    c=$((c+1))
+    if [ $mutated -eq 1 ]; then
+        tput cup 5 10; 
+        echo -ne "$m";
+    fi
+    #tput cup 9 10; echo -ne "$r"
+done
+echo
+echo "Count: $c"
+

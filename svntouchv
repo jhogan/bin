@@ -1,0 +1,6 @@
+#! /bin/bash
+source jjhfunctions
+
+svntouch "$1" || die "svntouch failed"
+
+vim "$1"

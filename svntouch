@@ -1,0 +1,6 @@
+#! /bin/bash
+source jjhfunctions
+
+[ -z "$1" ] && die "Argument not supplied."
+touch "$1" || die "touch failed."
+svn add "$1" || die "svn add failed."

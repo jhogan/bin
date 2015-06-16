@@ -1,0 +1,45 @@
+#!/bin/sh
+CCEXT="cpt"
+DIR=~/$USER/var/crite
+DRY=${DIR}/dry
+CDRY=${DRY}.${CCEXT}
+
+die(){
+	echo "Error: $1" 1>&2
+	exit 1
+}
+
+CCRYPT=$(which ccrypt)
+SVN=$(which svn)
+
+[ -d "$DIR" ] || die "no dry dir: $DIR"
+[ -e "$DRY" ] && die "Found unencypted"
+
+[ -x "$CCRYPT" ] || die 'no ccrypt'
+[ -x "$SVN" ] || die 'no svn'
+
+$SVN update $CDRY
+
+stty -echo
+read -p "Password: " pwd
+stty echo
+
+[ -z "$pwd" ] && die 'no password'
+
+if [ -e "$CDRY" ]; then
+	$CCRYPT -d $CDRY -K $pwd || die 'Decrypt failed. Wrong password?'
+fi
+
+date=`date`
+echo "
+--$date--
+" >> $DRY
+
+vim $DRY
+
+$CCRYPT -v -K $pwd -e $DRY
+
+status=$($SVN status $CDRY | awk '{print $1}')
+[ "x$status" = "x?" ] && $SVN add $CDRY
+
+$SVN ci -mx $CDRY

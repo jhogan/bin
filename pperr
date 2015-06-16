@@ -1,0 +1,12 @@
+#! /bin/bash
+source ./jjhfunctions
+FILE=$1
+[ -e "$FILE" ] || die "file '$FILE' not found"
+
+
+CONT="<body>"
+CONT=${CONT}`cat "$FILE"` 
+CONT=${CONT}"</body>"
+
+echo $CONT #| xmllint --format
+

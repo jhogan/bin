@@ -1,0 +1,19 @@
+#! /bin/sh
+BASEDIR=~/var/db/se
+SRCDIR=/mnt/jhogan/var/db/se
+cp -purv ${SRCDIR}/* $BASEDIR
+
+echo "caching mplayer"
+mplayer >/dev/null
+
+echo "caching files"
+cat $BASEDIR/* >/dev/null
+
+while [ 1 ]; do
+	read -p "file: " file
+	if [ -z "$file" ] ;then
+		file=$prev
+	fi
+	prev=$file
+	mplayer "${BASEDIR}/${file}.ogg"
+done

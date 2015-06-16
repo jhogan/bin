@@ -1,0 +1,18 @@
+#!/bin/sh
+
+. jjhfunctions
+
+function usage(){
+        echo "$1"
+        die "Usage: $ME -n signum process"
+}
+SIGNUM="$1"
+PS="$2"
+
+[ -z "$PS" ] && PS="$SIGNUM" && SIGNUM=-9
+[ -z "$PS" ] && usage 
+
+
+
+set -x
+ps -ef | awk '$6 ~ /\/'${PS}'$/ {print $2}' | xargs  echo #kill $SIGNUM
