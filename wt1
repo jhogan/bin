@@ -1,0 +1,102 @@
+#! /usr/bin/python
+from datetime import date
+from datetime import timedelta
+import sys
+
+wt = weight_file()
+for week in wt.weeks:
+    sys.stdout.write(week.avg)
+
+class weight_file:
+    FILE='/home/jhogan/git/priv/var/log/weight'
+
+    @property
+    def weeks(self):
+        try:
+            f = self.file
+            ws = weeks()
+            pl = None
+            for l in f:
+                l = line(l)
+                if pl and l.isweekafter(pl):
+                    w = ws.add(week())
+                w.line = l
+                pl = l
+            r.add(w)
+            return ws
+        finally
+            self.close()
+
+    @property
+    def file(self):
+        if self._file == None:
+            self._file = open(self.FILE)
+        return self._file
+
+    def close():
+        self._file.close()
+
+class weeks:
+    def __init__(self):
+        self._ls = []
+
+    def add(self, w):
+        self._ls.append(w)
+
+    @property
+    def avg(self)
+        wt=0
+        for i,w in enumerate(self._ls):
+            wt += w.weight
+
+        return wt / (i+1)
+
+class week:
+    def __init__(self):
+        pass
+
+    def line(self, v):
+        self._line = v
+
+
+class line:
+    def __init__(self, l):
+        self._line = l
+
+    def isweekafter(self, l):
+        day = timedelta(1)
+        d = self.date
+        D = l.date
+        if d <= D return False
+
+        while d > D:
+            d = d - day
+            if d.weekday = 5: # Saturday
+                return True
+        return False
+
+    @property
+    def date(self):
+        d, w = self._line.split()
+        YY, mm, dd = [int(x) for x in (d[:4], d[4:6], d[6:])]
+        return date(YY,mm,dd)
+
+    
+    cnt=sum=0
+    with open('/home/jhogan/git/priv/var/log/weight', 'r') as f:
+        for l in f:
+            l=l.strip()
+            d, w = l.split()
+            YY, mm, dd = [int(x) for x in (d[:4], d[4:6], d[6:])]
+            w=float(w)
+            d=date(YY,mm,dd)
+            if d.weekday() == 0: # Monday
+                if sum>0: 
+                    print(' ' + str(sum/cnt))
+                    sum=cnt=0
+                sys.stdout.write(str(d))
+            sum += w
+            cnt += 1
+            
+    if sum>0: 
+        print(' ' + str(sum/cnt))
