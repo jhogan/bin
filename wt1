@@ -3,9 +3,7 @@ from datetime import date
 from datetime import timedelta
 from pdb import set_trace
 import sys
-
 b=set_trace
-
 
 class weight_file:
     FILE='/home/jhogan/git/priv/var/log/weight'
@@ -42,6 +40,10 @@ class week:
     def add(self, v):
         self._ls.append(v)
         return v
+
+    @property
+    def days(self):
+        return self._ls
 
     @property
     def avg(self):
@@ -112,4 +114,4 @@ class line:
 
 wt = weight_file()
 for w in wt.weeks._ls:
-    print(w.avg)
+    print(str(w.days[0].date) + ' ' + str(w.avg))

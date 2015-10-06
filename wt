@@ -2,7 +2,7 @@
 from datetime import date
 import sys
 cnt=sum=0
-with open('/home/jhogan/trunks/var/log/weight', 'r') as f:
+with open('/home/jhogan/git/priv/var/log/weight', 'r') as f:
     for l in f:
         l=l.strip()
         d, w = l.split()
