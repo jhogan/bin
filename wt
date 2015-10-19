@@ -151,10 +151,18 @@ class reporter:
         for i, s in enumerate(daysum):
             print(str(i) + ' ' + str(s / daycnt[i]))
 
-    def weekly_averages(self):
+    def weekly_averages(self, graph=False):
         wt=self._weight_file
+        BASE_WEIGHT=160
+        bar=''
         for w in wt.weeks._ls:
-            print(str(w.days[0].date) + ' ' + str(w.avg))
+            if graph:
+                over_base = int(w.avg) - BASE_WEIGHT
+                bar = ' ' + ('|||' * over_base)
+
+            avg=str(round(w.avg, 2)).ljust(6)
+
+            print(str(w.days[0].date) + ' ' + avg +  bar)
 
     def weekends(self):
         wt=self._weight_file
@@ -171,7 +179,7 @@ if not wt.isvalid:
     
 
 rpt=reporter(wt)
-rpt.weekly_averages()
+rpt.weekly_averages(True)
 """
 rpt.weekday_averages()
 rpt.weekends()
