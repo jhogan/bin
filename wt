@@ -158,7 +158,7 @@ class reporter:
         for w in wt.weeks._ls:
             if graph:
                 over_base = int(w.avg) - BASE_WEIGHT
-                bar = ' ' + ('|||' * over_base)
+                bar = ' ' + ('|' * over_base)
 
             avg=str(round(w.avg, 2)).ljust(6)
 
