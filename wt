@@ -154,7 +154,6 @@ class reporter:
     def weekly_averages(self, graph=False):
         wt=self._weight_file
         BASE_WEIGHT=160
-        bar=''
         for w in wt.weeks._ls:
             if graph:
                 over_base = int(w.avg) - BASE_WEIGHT
