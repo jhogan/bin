@@ -1,0 +1,31 @@
+#! /usr/bin/env bash
+#sort -R /usr/share/dict/american-english | head -n 10000 | grep -P "^[a-z]{5}$" > /tmp/sands
+
+stty -echo
+for w in `sort -R /tmp/sands`; do
+    clear
+    w=${w^^}
+    echo "NOW SPELL $w"
+    echo "NOW SPELL $w" | espeak 
+
+    nw=
+    while true; do
+        read -s -n1
+        c=${REPLY^^}
+        echo -n $c 
+        echo $c | espeak 
+        nw="${nw}$c";
+        if [ ${#w} -eq ${#nw} ]; then
+            echo
+            if [ $w = $nw ]; then
+                echo "CORRECT"
+                echo "CORRECT" | espeak
+            else
+                echo "ERR NO"
+                echo "incorrect" | espeak
+            fi
+            break
+        fi
+    done
+done
+   

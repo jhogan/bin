@@ -1,7 +1,7 @@
 #!/bin/bash
 . jjhfunctions
 WORD="$1"
-LOGDIR=~/trunks/var/log/sd
+LOGDIR=~/git/ts/var/log/sd
 URL=http://dictionary.reference.com/browse
 FILE="$LOGDIR/$WORD"
 
@@ -14,8 +14,9 @@ else
     if [ "x$REPLY" != 'xnvm' ]; then
         echo "Source: $REPLY" > "$FILE" 
         echo "First viewed: `date`" >> "$FILE"
-        svn add "$FILE"
-        svn ci -m"$ME: Adding $WORD" "$FILE"
+        git add "$FILE"
+        git commit -m"$ME: Adding $WORD" "$FILE"
+        git push origin master
     fi
 fi
 
