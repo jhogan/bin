@@ -1,6 +1,6 @@
 #!/bin/sh
 # TODO: Remove backup file if exists
-. jjhfunctions
+. /cygdrive/c/sosgit/utilities/Scripts/jjhfunctions
 usage(){
         echo $1
         echo "Usage: $ME -P prog -s server -d database -b backup file -u user -p pass"

@@ -1,0 +1,40 @@
+#!/bash/sh
+ME=`basename $0`
+function testret(){
+        [ $1 = 0 ] || die "$2 (retval: $1)"
+}
+function chkbin(){
+    bin="$1"
+    which "$bin" &>/dev/null
+    return $?
+}
+function demandbin(){
+    bin="$1"
+    if ! chkbin "$bin"; then
+        die "Missing executable: $1"
+    fi
+}
+function die(){
+        warn "$ME: $1" 
+        exit 1
+}
+function warn(){
+        echo "$1" >&2
+}
+function isint(){
+    echo "$1" | grep "^[0-9]\+$" -i >/dev/null 
+    return $?
+}
+lc() {
+    if [ -z "$1" ]; then
+        return
+    fi
+    echo $1 | tr "[:upper:]" "[:lower:]" 
+} 
+
+uc() {
+    if [ -z "$1" ]; then
+        return
+    fi
+    echo $1 | tr "[:lower:]" "[:upper:]" 
+} 
