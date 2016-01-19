@@ -1,27 +1,28 @@
 <?php
 
-$s = 'dacb';
+$input = 'abcdefg';
+try{
 
-$c = 2;
+    $input = str_split($input);
+    sort($input);
 
-for($i=3; $i<=strlen($s); $i++) $c *= $i;
+    $strmin = join(range(1, count($input)));
+    $strmax = strrev($strmin);
 
-$s = str_split($s);
+    $intmin = intval($strmin);
+    $intmax = intval($strmax);
 
-sort($s);
+    foreach(range($intmin, $intmax) as $num){
+        $strnum = strval($num);
+        $chars = str_split($strnum);
+        sort($chars);
 
-$j = 0;
-for($i=0; $i<$c; $i++){
-    echo(join($s) . "\n");
-    if ($i % 2 == 0){
-        list($x, $y, $z) = [2, 3, 1];
-    }else{
-        if($j++ % 2 == 0)
-            list($x, $y, $z) = [3, 1, 1];
-        else
-            list($x, $y, $z) = [2, 1, 2];
-
+        if(join($chars) == $strmin){
+            foreach(str_split($strnum) as $c) echo $input[$c-1];
+            echo "\n";
+        }
     }
-
-    array_splice($s, $y, 0, array_splice($s, $x, $z));
+}catch(Exception $ex){
+    print($ex);
 }
+
