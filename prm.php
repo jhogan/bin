@@ -1,6 +1,6 @@
 <?php
 
-$input = 'abcdefg';
+$input = '6Zu';
 try{
 
     $input = str_split($input);
@@ -12,7 +12,8 @@ try{
     $intmin = intval($strmin);
     $intmax = intval($strmax);
 
-    foreach(range($intmin, $intmax) as $num){
+    $num = $intmin;
+    do{
         $strnum = strval($num);
         $chars = str_split($strnum);
         sort($chars);
@@ -21,7 +22,8 @@ try{
             foreach(str_split($strnum) as $c) echo $input[$c-1];
             echo "\n";
         }
-    }
+
+    }while($num++ <= $intmax);
 }catch(Exception $ex){
     print($ex);
 }
