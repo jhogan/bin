@@ -1,5 +1,5 @@
 #!/bin/bash
-. jjhfunctions
+. functions
 WORD="$1"
 LOGDIR=~/git/ts/var/log/sd
 URL=http://dictionary.reference.com/browse

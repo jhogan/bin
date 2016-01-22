@@ -1,4 +1,5 @@
 #!/bash/sh
+
 ME=`basename $0`
 function testret(){
         [ $1 = 0 ] || die "$2 (retval: $1)"
