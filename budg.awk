@@ -1,7 +1,7 @@
 #!/usr/bin/awk -f
 {
     print $0; 
-    if($3 == ""){
+    if($2 == 0){
         ub+= $1;
     }else{
         t += $2;
