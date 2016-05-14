@@ -60,9 +60,9 @@ islap
 islap=$?
 
 apt-get install firefox vim rxvt screen gnucash \
-				openoffice.org htop ctags mplayer bashdb\
+				htop ctags mplayer bashdb\
 				espeak vlc links ccrypt gcompris \
-				traceroute subversion ngrep smbfs acpi pv\
+				traceroute subversion ngrep sshfs acpi pv\
                 ratpoison console-data flashplugin-nonfree xclip \
                 wicd-curses wicd-cli wicd-gtk git 
 
