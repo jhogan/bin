@@ -64,7 +64,8 @@ apt-get install firefox vim rxvt screen gnucash \
 				espeak vlc links ccrypt gcompris \
 				traceroute subversion ngrep sshfs acpi pv\
                 ratpoison console-data flashplugin-nonfree xclip \
-                wicd-curses wicd-cli wicd-gtk git 
+                wicd-curses wicd-cli wicd-gtk git \
+                extremetuxracer youtube-dl
 
 
 [ $islap -eq 0 ] && apt-get install wicd
