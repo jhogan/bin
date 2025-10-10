@@ -1,0 +1,116 @@
+#!/bin/bash
+
+# icscat - Concatenate multiple ICS calendar files into one
+# Usage: icscat [OPTIONS] FILE [FILE...]
+# Output is written to stdout
+
+VERSION="1.0.0"
+
+show_help() {
+    cat << EOF
+icscat - Concatenate ICS calendar files
+
+USAGE:
+    icscat [OPTIONS] FILE [FILE...]
+
+DESCRIPTION:
+    Merges multiple ICS (iCalendar) files into a single valid ICS file.
+    Strips duplicate VCALENDAR headers/footers and combines all events.
+    Output is written to stdout.
+
+OPTIONS:
+    -h, --help      Show this help message
+    -v, --version   Show version information
+
+EXAMPLES:
+    # Merge all ICS files in current directory
+    icscat *.ics > merged.ics
+
+    # Merge specific files
+    icscat interview1.ics interview2.ics > combined.ics
+
+    # Single file (validates and outputs)
+    icscat single.ics > output.ics
+
+    # Use with pipe
+    find . -name "*.ics" -exec cat {} \; | icscat
+
+NOTES:
+    - Requires at least one input file or stdin
+    - Input files must be valid ICS format
+    - Preserves all VEVENT blocks from all input files
+    - Output includes single VCALENDAR wrapper
+
+AUTHOR:
+    Jesse Hogan - Semantic Recruitment
+
+EOF
+}
+
+show_version() {
+    echo "icscat version $VERSION"
+}
+
+# Parse command line arguments
+if [ $# -eq 0 ]; then
+    # Check if stdin has data
+    if [ -t 0 ]; then
+        echo "Error: No input files specified" >&2
+        echo "Try 'icscat --help' for more information." >&2
+        exit 1
+    fi
+    # Read from stdin
+    INPUT_MODE="stdin"
+else
+    case "$1" in
+        -h|--help)
+            show_help
+            exit 0
+            ;;
+        -v|--version)
+            show_version
+            exit 0
+            ;;
+        -*)
+            echo "Error: Unknown option: $1" >&2
+            echo "Try 'icscat --help' for more information." >&2
+            exit 1
+            ;;
+        *)
+            INPUT_MODE="files"
+            ;;
+    esac
+fi
+
+# Validate input files exist and are readable
+if [ "$INPUT_MODE" = "files" ]; then
+    for file in "$@"; do
+        if [ ! -f "$file" ]; then
+            echo "Error: File not found: $file" >&2
+            exit 1
+        fi
+        if [ ! -r "$file" ]; then
+            echo "Error: File not readable: $file" >&2
+            exit 1
+        fi
+    done
+fi
+
+# Output VCALENDAR header
+echo "BEGIN:VCALENDAR"
+echo "VERSION:2.0"
+echo "PRODID:-//Semantic Recruitment//icscat $VERSION//EN"
+echo "CALSCALE:GREGORIAN"
+echo "METHOD:PUBLISH"
+
+# Process input and extract VEVENT blocks
+if [ "$INPUT_MODE" = "stdin" ]; then
+    # Read from stdin
+    grep -v "BEGIN:VCALENDAR\|END:VCALENDAR\|VERSION:\|PRODID:\|CALSCALE:\|METHOD:"
+else
+    # Read from files
+    cat "$@" | grep -v "BEGIN:VCALENDAR\|END:VCALENDAR\|VERSION:\|PRODID:\|CALSCALE:\|METHOD:"
+fi
+
+# Output VCALENDAR footer
+echo "END:VCALENDAR"
